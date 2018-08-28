@@ -3529,8 +3529,6 @@ public:
 /// system.
 - (CGRect)convertCoordinateBounds:(MGLCoordinateBounds)bounds toRectToView:(nullable UIView *)view
 {
-    auto emptyBounds = mbgl::LatLngBounds::empty();
-    
     mbgl::LatLngBounds latLngBounds = MGLLatLngBoundsFromCoordinateBounds(bounds);
 
     auto topLeft = latLngBounds.northwest();
@@ -3538,22 +3536,23 @@ public:
     auto bottomLeft = latLngBounds.southwest();
     auto bottomRight = latLngBounds.southeast();
     
-
     auto center = [self convertPoint:{ CGRectGetMidX(self.frame), CGRectGetMidY(self.frame) } toLatLngFromView:view];
     
+    // Extend bounds to account for the antimeridian
     topLeft.unwrapForShortestPath(center);
     topRight.unwrapForShortestPath(center);
     bottomLeft.unwrapForShortestPath(center);
     bottomRight.unwrapForShortestPath(center);
     
-    emptyBounds.extend(topLeft);
-    emptyBounds.extend(topRight);
-    emptyBounds.extend(bottomLeft);
-    emptyBounds.extend(bottomRight);
+    auto correctedLatLngBounds = mbgl::LatLngBounds::empty();
+    correctedLatLngBounds.extend(topLeft);
+    correctedLatLngBounds.extend(topRight);
+    correctedLatLngBounds.extend(bottomLeft);
+    correctedLatLngBounds.extend(bottomRight);
 
-    MGLCoordinateBounds fixedBounds = MGLCoordinateBoundsFromLatLngBounds(emptyBounds);
+    MGLCoordinateBounds correctedMGLCoordinateBounds = MGLCoordinateBoundsFromLatLngBounds(correctedLatLngBounds);
     
-    return [self convertLatLngBounds:MGLLatLngBoundsFromCoordinateBounds(fixedBounds) toRectToView:view];
+    return [self convertLatLngBounds:MGLLatLngBoundsFromCoordinateBounds(correctedMGLCoordinateBounds) toRectToView:view];
 }
 
 /// Converts a geographic bounding box to a rectangle in the view’s coordinate
