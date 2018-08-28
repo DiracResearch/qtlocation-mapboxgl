@@ -3527,11 +3527,51 @@ public:
 
 - (CGRect)convertCoordinateBounds:(MGLCoordinateBounds)bounds toRectToView:(nullable UIView *)view
 {
-    if ( ! CLLocationCoordinate2DIsValid(bounds.sw) || ! CLLocationCoordinate2DIsValid(bounds.ne))
-    {
-        return CGRectNull;
-    }
-    return [self convertLatLngBounds:MGLLatLngBoundsFromCoordinateBounds(bounds) toRectToView:view];
+//    if ( ! CLLocationCoordinate2DIsValid(bounds.sw) || ! CLLocationCoordinate2DIsValid(bounds.ne))
+//    {
+//        return CGRectNull;
+//    }
+
+    auto emptyBounds = mbgl::LatLngBounds::empty();
+    
+    // bounds = {
+    //   sw = (latitude = 24, longitude = 240)
+    //   ne = (latitude = 44, longitude = 240)
+    // }
+    
+    mbgl::LatLngBounds latLngBounds = MGLLatLngBoundsFromCoordinateBounds(bounds);
+    
+    // (mbgl::LatLngBounds) latLngBounds = {
+        // sw = (lat = 24, lon = 240)
+        // ne = (lat = 44, lon = 240)
+    // }
+
+    auto topLeft = latLngBounds.northwest();  //    (lat = 44, lon = 240)
+    auto topRight = latLngBounds.northeast(); //    (lat = 44, lon = 240)
+    auto bottomLeft = latLngBounds.southwest(); //  (lat = 24, lon = 240)
+    auto bottomRight = latLngBounds.southeast(); // (lat = 24, lon = 240)
+    
+    // get center of MGLBounds
+    auto center = latLngBounds.center();
+    
+    topLeft.unwrapForShortestPath(center);
+    topRight.unwrapForShortestPath(center);
+    bottomLeft.unwrapForShortestPath(center);
+    bottomRight.unwrapForShortestPath(center);
+    
+    emptyBounds.extend(topLeft);
+    emptyBounds.extend(topRight);
+    emptyBounds.extend(bottomLeft);
+    emptyBounds.extend(bottomRight);
+    
+    // fixedBounds = {
+        // sw = (latitude = 24, longitude = 180)
+        // ne = (latitude = 44, longitude = 240)
+    // }
+
+    MGLCoordinateBounds fixedBounds = MGLCoordinateBoundsFromLatLngBounds(emptyBounds);
+    
+    return [self convertLatLngBounds:MGLLatLngBoundsFromCoordinateBounds(fixedBounds) toRectToView:view];
 }
 
 /// Converts a geographic bounding box to a rectangle in the view’s coordinate
