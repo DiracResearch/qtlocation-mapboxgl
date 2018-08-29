@@ -1130,6 +1130,9 @@ MGL_EXPORT IB_DESIGNABLE
 /**
  Converts a geographic bounding box to a rectangle in the given view’s
  coordinate system.
+ 
+ If a longitude is less than −180 degrees or greater than 180 degrees, the
+ bounding box straddles the antimeridian or international date line.
 
  @param bounds The geographic bounding box to convert.
  @param view The view in whose coordinate system the returned rectangle should
