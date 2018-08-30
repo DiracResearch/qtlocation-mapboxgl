@@ -4,6 +4,10 @@ load(qt_helper_lib)
 
 CONFIG += qt c++14 exceptions warn_off staticlib object_parallel_to_source
 
+ios {
+    CONFIG -= c++1z
+}
+
 QT += network-private \
       gui-private \
       sql-private
